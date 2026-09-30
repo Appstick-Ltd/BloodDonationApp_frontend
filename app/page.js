@@ -97,13 +97,13 @@ export default function LandingPage() {
   const [recentRequests, setRecentRequests] = useState([]);
 
   const [bloodGroupDist, setBloodGroupDist] = useState([
-    { group: "A+",  pct: 0, count: 0, color: "#C5162E" },
-    { group: "B+",  pct: 0, count: 0, color: "#E01A34" },
-    { group: "O+",  pct: 0, count: 0, color: "#F04060" },
+    { group: "A+", pct: 0, count: 0, color: "#C5162E" },
+    { group: "B+", pct: 0, count: 0, color: "#E01A34" },
+    { group: "O+", pct: 0, count: 0, color: "#F04060" },
     { group: "AB+", pct: 0, count: 0, color: "#FF6B8A" },
-    { group: "A-",  pct: 0, count: 0, color: "#7B0A1A" },
-    { group: "B-",  pct: 0, count: 0, color: "#A01020" },
-    { group: "O-",  pct: 0, count: 0, color: "#8B1A2A" },
+    { group: "A-", pct: 0, count: 0, color: "#7B0A1A" },
+    { group: "B-", pct: 0, count: 0, color: "#A01020" },
+    { group: "O-", pct: 0, count: 0, color: "#8B1A2A" },
     { group: "AB-", pct: 0, count: 0, color: "#6B0F1A" },
   ]);
 
@@ -140,8 +140,8 @@ export default function LandingPage() {
           const bg = blood_group?.trim().toUpperCase();
           if (bg) counts[bg] = (counts[bg] || 0) + 1;
         });
-        const bgColors = { "A+": "#C5162E","B+": "#E01A34","O+": "#F04060","AB+": "#FF6B8A","A-": "#7B0A1A","B-": "#A01020","O-": "#8B1A2A","AB-": "#6B0F1A" };
-        setBloodGroupDist(["A+","B+","O+","AB+","A-","B-","O-","AB-"].map(g => ({
+        const bgColors = { "A+": "#C5162E", "B+": "#E01A34", "O+": "#F04060", "AB+": "#FF6B8A", "A-": "#7B0A1A", "B-": "#A01020", "O-": "#8B1A2A", "AB-": "#6B0F1A" };
+        setBloodGroupDist(["A+", "B+", "O+", "AB+", "A-", "B-", "O-", "AB-"].map(g => ({
           group: g, pct: total > 0 ? Math.round(((counts[g] || 0) / total) * 100) : 0,
           color: bgColors[g], count: counts[g] || 0,
         })));
@@ -211,7 +211,7 @@ export default function LandingPage() {
               {/* Action Area */}
               <div className={styles.heroActions}>
                 <a href="#download" className={styles.btnPrimaryLg}>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
                   <span>Download BloodBanks</span>
                 </a>
                 <a href="#compatibility" className={styles.btnSecondaryLg}>
@@ -273,8 +273,8 @@ export default function LandingPage() {
                         <span className={styles.islandPulse}>Live SOS</span>
                       </div>
                       <div className={styles.signalGroup}>
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3c-4.97 0-9 4.03-9 9 0 2.12.74 4.07 1.97 5.61L12 22l7.03-4.39C20.26 16.07 21 14.12 21 12c0-4.97-4.03-9-9-9z"/></svg>
-                        <svg width="14" height="10" viewBox="0 0 24 14" fill="currentColor"><rect x="1" y="1" width="22" height="12" rx="2"/><rect x="23" y="4" width="2" height="6"/></svg>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3c-4.97 0-9 4.03-9 9 0 2.12.74 4.07 1.97 5.61L12 22l7.03-4.39C20.26 16.07 21 14.12 21 12c0-4.97-4.03-9-9-9z" /></svg>
+                        <svg width="14" height="10" viewBox="0 0 24 14" fill="currentColor"><rect x="1" y="1" width="22" height="12" rx="2" /><rect x="23" y="4" width="2" height="6" /></svg>
                       </div>
                     </div>
 
@@ -437,7 +437,7 @@ export default function LandingPage() {
                 {/* Can Donate To */}
                 <div className={styles.matchingCol}>
                   <div className={styles.matchColTitle}>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C5162E" strokeWidth="2.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C5162E" strokeWidth="2.5"><path d="M12 19V5M5 12l7-7 7 7" /></svg>
                     <span>Can Safely Donate To:</span>
                   </div>
                   <div className={styles.pillWrap}>
@@ -450,7 +450,7 @@ export default function LandingPage() {
                 {/* Can Receive From */}
                 <div className={styles.matchingCol}>
                   <div className={styles.matchColTitle}>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="2.5"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="2.5"><path d="M12 5v14M5 12l7 7 7-7" /></svg>
                     <span>Can Safely Receive From:</span>
                   </div>
                   <div className={styles.pillWrap}>
@@ -605,7 +605,7 @@ export default function LandingPage() {
               <span className={styles.liveDotGreen} />
               <span>{statsLoading ? "Connecting to Supabase cluster..." : `Cluster Connected · Last synced at ${lastUpdated?.toLocaleTimeString() || ""}`}</span>
               <button className={styles.refreshIconBtn} onClick={fetchStats} title="Refresh Database Records">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="23 4 23 10 17 10" /><polyline points="1 20 1 14 7 14" /><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" /></svg>
               </button>
             </div>
           </div>
@@ -730,16 +730,16 @@ export default function LandingPage() {
                 <div className={styles.qrDeviceBox}>
                   <div className={styles.qrInnerWhite}>
                     <svg width="128" height="128" viewBox="0 0 24 24" fill="#0F172A">
-                      <rect x="2" y="2" width="8" height="8" rx="1.5" stroke="#0F172A" strokeWidth="1.5" fill="none"/>
-                      <rect x="4.5" y="4.5" width="3" height="3" fill="#C5162E"/>
-                      <rect x="14" y="2" width="8" height="8" rx="1.5" stroke="#0F172A" strokeWidth="1.5" fill="none"/>
-                      <rect x="16.5" y="4.5" width="3" height="3" fill="#C5162E"/>
-                      <rect x="2" y="14" width="8" height="8" rx="1.5" stroke="#0F172A" strokeWidth="1.5" fill="none"/>
-                      <rect x="4.5" y="16.5" width="3" height="3" fill="#C5162E"/>
-                      <rect x="14" y="14" width="2" height="2" fill="#0F172A"/>
-                      <rect x="18" y="14" width="2" height="2" fill="#0F172A"/>
-                      <rect x="14" y="18" width="4" height="2" fill="#0F172A"/>
-                      <rect x="20" y="18" width="2" height="4" fill="#0F172A"/>
+                      <rect x="2" y="2" width="8" height="8" rx="1.5" stroke="#0F172A" strokeWidth="1.5" fill="none" />
+                      <rect x="4.5" y="4.5" width="3" height="3" fill="#C5162E" />
+                      <rect x="14" y="2" width="8" height="8" rx="1.5" stroke="#0F172A" strokeWidth="1.5" fill="none" />
+                      <rect x="16.5" y="4.5" width="3" height="3" fill="#C5162E" />
+                      <rect x="2" y="14" width="8" height="8" rx="1.5" stroke="#0F172A" strokeWidth="1.5" fill="none" />
+                      <rect x="4.5" y="16.5" width="3" height="3" fill="#C5162E" />
+                      <rect x="14" y="14" width="2" height="2" fill="#0F172A" />
+                      <rect x="18" y="14" width="2" height="2" fill="#0F172A" />
+                      <rect x="14" y="18" width="4" height="2" fill="#0F172A" />
+                      <rect x="20" y="18" width="2" height="4" fill="#0F172A" />
                     </svg>
                   </div>
                   <span className={styles.qrHelper}>Instant Mobile Camera Install</span>
@@ -759,7 +759,7 @@ export default function LandingPage() {
                 <div className={styles.logoRedIcon}>
                   <svg width="22" height="28" viewBox="0 0 22 28" fill="none">
                     <path d="M11 0C11 0 1 10.5 1 17C1 22.523 5.477 27 11 27C16.523 27 21 22.523 21 17C21 10.5 11 0 11 0Z" fill="url(#ftBlood)" />
-                    <defs><linearGradient id="ftBlood" x1="11" y1="0" x2="11" y2="27" gradientUnits="userSpaceOnUse"><stop stopColor="#F04060"/><stop offset="1" stopColor="#C5162E"/></linearGradient></defs>
+                    <defs><linearGradient id="ftBlood" x1="11" y1="0" x2="11" y2="27" gradientUnits="userSpaceOnUse"><stop stopColor="#F04060" /><stop offset="1" stopColor="#C5162E" /></linearGradient></defs>
                   </svg>
                 </div>
                 <div>
