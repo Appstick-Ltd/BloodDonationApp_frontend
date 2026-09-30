@@ -1390,8 +1390,130 @@ export default function AdminDashboard() {
                   </table>
                 </div>
               </div>
+
+              {/* ROW 3: Recent Donors + Quick Actions */}
+              <div className={styles.chartsSplitRow}>
+                {/* Recent Donors Panel */}
+                <div className={styles.chartColLarge}>
+                  <div className={styles.panelCard}>
+                    <div className={styles.panelHeader}>
+                      <div>
+                        <h3 className={styles.chartTitle}>Recent Donors</h3>
+                        <p className={styles.chartSub}>Latest registered voluntary donors</p>
+                      </div>
+                      <button className={styles.linkBtn} onClick={() => setActiveTab("donors")}>
+                        View All ({donors.length}) →
+                      </button>
+                    </div>
+                    <div className={styles.recentDonorsList}>
+                      {donors.slice(0, 5).map((donor) => {
+                        const initials = (donor.full_name || "D").split(" ").map(n => n[0]).slice(0, 2).join("").toUpperCase();
+                        return (
+                          <div key={donor.id} className={styles.recentDonorRow}>
+                            <div className={styles.recentDonorAvatar}>{initials}</div>
+                            <div className={styles.recentDonorInfo}>
+                              <div className={styles.recentDonorName}>{donor.full_name || "Anonymous Donor"}</div>
+                              <div className={styles.recentDonorMeta}>
+                                📍 {donor.district || "—"}{donor.area ? `, ${donor.area}` : ""}
+                              </div>
+                            </div>
+                            <div className={styles.recentDonorRight}>
+                              <span className={styles.bloodPill} style={{ background: BLOOD_COLORS[donor.blood_group] || "#C5162E" }}>
+                                {donor.blood_group || "?"}
+                              </span>
+                              <span className={donor.is_available ? styles.statusGreen : styles.statusOrange} style={{ fontSize: "11px", fontWeight: 600 }}>
+                                {donor.is_available ? "● Ready" : "● Cooldown"}
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                      {donors.length === 0 && !loading && (
+                        <div className={styles.emptyCell}>No donors registered yet.</div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Quick Actions Panel */}
+                <div className={styles.chartColSmall}>
+                  <div className={styles.panelCard}>
+                    <div className={styles.panelHeader}>
+                      <div>
+                        <h3 className={styles.chartTitle}>Quick Actions</h3>
+                        <p className={styles.chartSub}>Common admin shortcuts</p>
+                      </div>
+                    </div>
+                    <div className={styles.quickActionsGrid}>
+                      <button className={styles.quickActionBtn} onClick={() => setActiveTab("requests")}>
+                        <span className={styles.quickActionIcon} style={{ background: "#FFEBEE", color: "#C5162E" }}>
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"></polygon>
+                            <line x1="12" y1="8" x2="12" y2="12"></line>
+                            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                          </svg>
+                        </span>
+                        <span className={styles.quickActionLabel}>Manage Requests</span>
+                        {metrics.activeRequests > 0 && (
+                          <span className={styles.quickActionBadge}>{metrics.activeRequests}</span>
+                        )}
+                      </button>
+
+                      <button className={styles.quickActionBtn} onClick={() => setActiveTab("donors")}>
+                        <span className={styles.quickActionIcon} style={{ background: "#E8F5E9", color: "#2E7D32" }}>
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                          </svg>
+                        </span>
+                        <span className={styles.quickActionLabel}>Donor Directory</span>
+                      </button>
+
+                      <button className={styles.quickActionBtn} onClick={() => setActiveTab("inventory")}>
+                        <span className={styles.quickActionIcon} style={{ background: "#E3F2FD", color: "#1565C0" }}>
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path>
+                          </svg>
+                        </span>
+                        <span className={styles.quickActionLabel}>Blood Inventory</span>
+                      </button>
+
+                      <button className={styles.quickActionBtn} onClick={fetchData}>
+                        <span className={styles.quickActionIcon} style={{ background: "#F3E5F5", color: "#6A1B9A" }}>
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <polyline points="23 4 23 10 17 10"></polyline>
+                            <polyline points="1 20 1 14 7 14"></polyline>
+                            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                          </svg>
+                        </span>
+                        <span className={styles.quickActionLabel}>Refresh Data</span>
+                      </button>
+
+                      <div className={styles.quickStatRow}>
+                        <div className={styles.quickStat}>
+                          <span className={styles.quickStatVal} style={{ color: "#C5162E" }}>{metrics.availableDonors}</span>
+                          <span className={styles.quickStatLbl}>Ready Donors</span>
+                        </div>
+                        <div className={styles.quickStatDivider} />
+                        <div className={styles.quickStat}>
+                          <span className={styles.quickStatVal} style={{ color: "#E65100" }}>{metrics.criticalRequests}</span>
+                          <span className={styles.quickStatLbl}>Critical Cases</span>
+                        </div>
+                        <div className={styles.quickStatDivider} />
+                        <div className={styles.quickStat}>
+                          <span className={styles.quickStatVal} style={{ color: "#2E7D32" }}>{metrics.fulfilledRequests}</span>
+                          <span className={styles.quickStatLbl}>Fulfilled</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
+
 
           {/* TAB 2: EMERGENCY REQUESTS */}
           {activeTab === "requests" && (

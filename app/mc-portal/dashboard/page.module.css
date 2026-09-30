@@ -1455,3 +1455,167 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ================== RECENT DONORS PANEL ================== */
+.recentDonorsList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.recentDonorRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: #F8FAFC;
+  border: 1px solid #F1F5F9;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.recentDonorRow:hover {
+  background: #FFF1F3;
+  border-color: rgba(197, 22, 46, 0.15);
+}
+
+.recentDonorAvatar {
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #C5162E, #E01A34);
+  color: #FFFFFF;
+  font-size: 13px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  letter-spacing: 0.5px;
+}
+
+.recentDonorInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.recentDonorName {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0F172A;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.recentDonorMeta {
+  font-size: 11px;
+  color: #64748B;
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.recentDonorRight {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  min-width: 70px;
+}
+
+/* ================== QUICK ACTIONS PANEL ================== */
+.quickActionsGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.quickActionBtn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  text-align: left;
+  position: relative;
+}
+
+.quickActionBtn:hover {
+  border-color: #CBD5E1;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  transform: translateX(2px);
+}
+
+.quickActionIcon {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.quickActionLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: #0F172A;
+  flex: 1;
+}
+
+.quickActionBadge {
+  background: #C5162E;
+  color: #FFFFFF;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 9999px;
+  min-width: 20px;
+  text-align: center;
+}
+
+.quickStatRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background: linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 100%);
+  border-radius: 12px;
+  border: 1px solid #E2E8F0;
+  margin-top: 4px;
+}
+
+.quickStat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  flex: 1;
+}
+
+.quickStatVal {
+  font-size: 22px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.quickStatLbl {
+  font-size: 10px;
+  color: #64748B;
+  font-weight: 600;
+  text-align: center;
+}
+
+.quickStatDivider {
+  width: 1px;
+  height: 32px;
+  background: #E2E8F0;
+}
+
