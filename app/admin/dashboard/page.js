@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState, useCallback, useMemo } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 import styles from "./page.module.css";
 
@@ -896,10 +897,27 @@ function DistrictRankWidget({ donors, requests }) {
 // MAIN ADMIN DASHBOARD
 // -------------------------------------------------------------
 export default function AdminDashboard() {
+  const router = useRouter();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [lastRefreshed, setLastRefreshed] = useState(null);
+
+  useEffect(() => {
+    try {
+      const isAuth =
+        sessionStorage.getItem("admin_auth") === "true" ||
+        localStorage.getItem("admin_auth") === "true";
+      if (!isAuth) {
+        router.replace("/admin/login");
+      } else {
+        setIsAuthenticated(true);
+      }
+    } catch {
+      router.replace("/admin/login");
+    }
+  }, [router]);
 
   // Data states
   const [donors, setDonors] = useState([]);
@@ -946,10 +964,11 @@ export default function AdminDashboard() {
   }, []);
 
   useEffect(() => {
+    if (!isAuthenticated) return;
     fetchData();
     const interval = setInterval(fetchData, 45000); // 45s polling
     return () => clearInterval(interval);
-  }, [fetchData]);
+  }, [fetchData, isAuthenticated]);
 
   // Derived metrics
   const metrics = useMemo(() => {
@@ -1012,8 +1031,34 @@ export default function AdminDashboard() {
   }, [donors, filterBloodGroup, searchQuery]);
 
   const handleLogout = () => {
-    window.location.href = "/admin/login";
+    try {
+      sessionStorage.removeItem("admin_auth");
+      localStorage.removeItem("admin_auth");
+      localStorage.removeItem("admin_email");
+      localStorage.removeItem("admin_user");
+    } catch (err) {
+      console.error("Logout error:", err);
+    }
+    router.replace("/admin/login");
   };
+
+  if (!isAuthenticated) {
+    return (
+      <div style={{
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "#060B16",
+        color: "#94A3B8",
+        fontSize: "14px",
+        fontWeight: "500",
+        gap: "12px"
+      }}>
+        <span>Authenticating Super Admin...</span>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.adminLayout}>

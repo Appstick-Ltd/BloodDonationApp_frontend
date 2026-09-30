@@ -1,9 +1,11 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import styles from "./page.module.css";
 
+const SUPER_ADMIN_EMAIL = "superadmin@gmail.com";
+const SUPER_ADMIN_PASS = "bloodapp@123456";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -11,14 +13,47 @@ export default function AdminLoginPage() {
   const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    // If already authenticated, redirect to dashboard
+    try {
+      const isAuth =
+        sessionStorage.getItem("admin_auth") === "true" ||
+        localStorage.getItem("admin_auth") === "true";
+      if (isAuth) {
+        router.replace("/admin/dashboard");
+      }
+    } catch {
+      // Storage access safety
+    }
+  }, [router]);
 
   const handleLogin = (e) => {
     e.preventDefault();
+    setError("");
     setLoading(true);
+
     setTimeout(() => {
-      setLoading(false);
-      router.push("/admin/dashboard");
-    }, 800);
+      const cleanEmail = email.trim().toLowerCase();
+      if (cleanEmail === SUPER_ADMIN_EMAIL && password === SUPER_ADMIN_PASS) {
+        try {
+          sessionStorage.setItem("admin_auth", "true");
+          localStorage.setItem("admin_auth", "true");
+          localStorage.setItem("admin_email", SUPER_ADMIN_EMAIL);
+          localStorage.setItem(
+            "admin_user",
+            JSON.stringify({ email: SUPER_ADMIN_EMAIL, role: "Superadmin" })
+          );
+        } catch (storageErr) {
+          console.error("Storage error:", storageErr);
+        }
+        router.push("/admin/dashboard");
+      } else {
+        setLoading(false);
+        setError("Invalid email or password. Only authorized super admin can access.");
+      }
+    }, 600);
   };
 
   return (
@@ -63,6 +98,17 @@ export default function AdminLoginPage() {
           <p className={styles.loginSubtitle}>Sign in to access the admin dashboard</p>
         </div>
 
+        {error && (
+          <div className={styles.errorAlert} role="alert">
+            <svg className={styles.errorIcon} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            <span>{error}</span>
+          </div>
+        )}
+
         <form className={styles.loginForm} onSubmit={handleLogin}>
           <div className={styles.inputGroup}>
             <label className={styles.inputLabel} htmlFor="admin-email">Email Address</label>
@@ -74,9 +120,12 @@ export default function AdminLoginPage() {
                 id="admin-email"
                 type="email"
                 className={styles.loginInput}
-                placeholder="admin@bloodbanks.com"
+                placeholder="superadmin@gmail.com"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (error) setError("");
+                }}
                 required
               />
             </div>
@@ -97,13 +146,17 @@ export default function AdminLoginPage() {
                 className={styles.loginInput}
                 placeholder="••••••••"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  if (error) setError("");
+                }}
                 required
               />
               <button
                 type="button"
                 className={styles.eyeBtn}
                 onClick={() => setShowPass(!showPass)}
+
                 aria-label="Toggle password visibility"
               >
                 {showPass ? (
