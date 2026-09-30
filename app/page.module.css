@@ -136,7 +136,7 @@
   align-items: center;
   gap: 10px;
   padding: 14px 28px;
-  border-radius: 9999px;
+  border-radius: 12px;
   background: linear-gradient(135deg, #F04060 0%, #C5162E 100%);
   color: #FFFFFF;
   font-size: 15px;
@@ -158,7 +158,7 @@
   align-items: center;
   gap: 8px;
   padding: 14px 24px;
-  border-radius: 9999px;
+  border-radius: 12px;
   background: #F8FAFC;
   color: #0F172A;
   font-size: 14px;
@@ -1232,7 +1232,7 @@
 .inventoryDistributionCard {
   background: #FFFFFF;
   border: 1px solid #E2E8F0;
-  border-radius: 24px;
+  border-radius: 20px;
   padding: 30px 36px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
 }
@@ -1377,7 +1377,7 @@
   gap: 14px;
   background: #000000;
   border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 16px;
+  border-radius: 12px;
   padding: 10px 22px;
   text-decoration: none;
   transition: all 0.2s ease;
@@ -1653,6 +1653,7 @@
   z-index: 10;
   padding: 40px 0 80px;
   background: #FFFFFF;
+  overflow-anchor: none;
 }
 
 .searchContainerCard {
@@ -2212,8 +2213,9 @@
 
 .callDonorAction {
   width: 100%;
-  padding: 10px 16px;
-  border-radius: 10px;
+  height: 44px;
+  padding: 0 16px;
+  border-radius: 12px;
   background: #FFF1F3;
   color: #C5162E;
   border: 1px solid rgba(197, 22, 46, 0.2);
@@ -2236,8 +2238,9 @@
 
 .appContactAction {
   width: 100%;
-  padding: 10px 16px;
-  border-radius: 10px;
+  height: 44px;
+  padding: 0 16px;
+  border-radius: 12px;
   background: #F1F5F9;
   color: #475569;
   border: 1px solid #CBD5E1;
@@ -2257,8 +2260,9 @@
 }
 
 .showMoreBtn {
-  padding: 12px 30px;
-  border-radius: 9999px;
+  height: 48px;
+  padding: 0 30px;
+  border-radius: 12px;
   background: #FFFFFF;
   border: 1.5px solid #CBD5E1;
   color: #0F172A;
@@ -2322,8 +2326,9 @@
 }
 
 .btnResetSearch {
-  padding: 10px 22px;
-  border-radius: 10px;
+  height: 44px;
+  padding: 0 22px;
+  border-radius: 12px;
   background: #C5162E;
   color: #FFFFFF;
   border: none;
@@ -2338,8 +2343,9 @@
 }
 
 .btnResetAllSearch {
-  padding: 10px 22px;
-  border-radius: 10px;
+  height: 44px;
+  padding: 0 22px;
+  border-radius: 12px;
   background: #FFFFFF;
   color: #334155;
   border: 1px solid #CBD5E1;
@@ -2362,6 +2368,11 @@
   border: 1.5px dashed #CBD5E1;
   border-radius: 20px;
   margin-top: 10px;
+  min-height: 260px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 .promptIconWrap {

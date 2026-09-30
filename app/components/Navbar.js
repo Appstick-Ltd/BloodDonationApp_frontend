@@ -2,27 +2,47 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import styles from "./Navbar.module.css";
 
 const navLinks = [
-  { label: "Home", href: "/#home" },
-  { label: "Find Donors", href: "/#find-donors" },
-  { label: "Features", href: "/#features" },
-  { label: "How It Works", href: "/#how-it-works" },
-  { label: "Statistics", href: "/#statistics" },
-  { label: "Blog & Guides", href: "/guides" },
-  { label: "Download", href: "/#download" },
+  { label: "Home", href: "/#home", sectionId: "home" },
+  { label: "Find Donors", href: "/#find-donors", sectionId: "find-donors" },
+  { label: "Features", href: "/#features", sectionId: "features" },
+  { label: "How It Works", href: "/#how-it-works", sectionId: "how-it-works" },
+  { label: "Statistics", href: "/#statistics", sectionId: "statistics" },
+  { label: "Blog & Guides", href: "/guides", sectionId: null },
+  { label: "Download", href: "/#download", sectionId: "download" },
 ];
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState("home");
+  const pathname = usePathname();
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 40);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  useEffect(() => {
+    if (pathname !== "/") return;
+    const sectionIds = navLinks.map(l => l.sectionId).filter(Boolean);
+    const observers = [];
+    sectionIds.forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const obs = new IntersectionObserver(
+        ([entry]) => { if (entry.isIntersecting) setActiveSection(id); },
+        { rootMargin: "-40% 0px -50% 0px", threshold: 0 }
+      );
+      obs.observe(el);
+      observers.push(obs);
+    });
+    return () => observers.forEach(o => o.disconnect());
+  }, [pathname]);
 
   return (
     <nav className={`${styles.navbar} ${scrolled ? styles.scrolled : ""}`}>
@@ -49,13 +69,18 @@ export default function Navbar() {
 
         {/* Desktop Nav */}
         <ul className={styles.navLinks}>
-          {navLinks.map((link) => (
-            <li key={link.label}>
-              <a href={link.href} className={styles.navLink}>
-                {link.label}
-              </a>
-            </li>
-          ))}
+          {navLinks.map((link) => {
+            const isActive = link.sectionId
+              ? activeSection === link.sectionId
+              : pathname === "/guides";
+            return (
+              <li key={link.label}>
+                <a href={link.href} className={`${styles.navLink} ${isActive ? styles.navLinkActive : ""}`}>
+                  {link.label}
+                </a>
+              </li>
+            );
+          })}
         </ul>
 
         {/* CTA Button */}

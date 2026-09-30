@@ -242,18 +242,24 @@ export default function LandingPage() {
   }, [searchBloodGroup, searchDistrict, searchOnlyAvailable, searchAreaKeyword]);
 
   const handleQuickFilter = (group, district, onlyAvail = false) => {
+    const scrollY = window.scrollY;
     setShowAllDonors(false);
     setSearchBloodGroup(group);
     setSearchDistrict(district);
     setSearchOnlyAvailable(onlyAvail);
     setSearchAreaKeyword("");
-    executeDonorSearch(group, district, onlyAvail, "");
+    executeDonorSearch(group, district, onlyAvail, "").then(() => {
+      requestAnimationFrame(() => window.scrollTo({ top: scrollY, behavior: "instant" }));
+    });
   };
 
   const handleSearchSubmit = (e) => {
     if (e) e.preventDefault();
+    const scrollY = window.scrollY;
     setShowAllDonors(false);
-    executeDonorSearch();
+    executeDonorSearch().then(() => {
+      requestAnimationFrame(() => window.scrollTo({ top: scrollY, behavior: "instant" }));
+    });
   };
 
   useEffect(() => {
@@ -638,9 +644,12 @@ export default function LandingPage() {
                     type="checkbox"
                     checked={searchOnlyAvailable}
                     onChange={(e) => {
+                      const scrollY = window.scrollY;
                       setSearchOnlyAvailable(e.target.checked);
                       if (hasSearched) {
-                        executeDonorSearch(undefined, undefined, e.target.checked);
+                        executeDonorSearch(undefined, undefined, e.target.checked).then(() => {
+                          requestAnimationFrame(() => window.scrollTo({ top: scrollY, behavior: "instant" }));
+                        });
                       }
                     }}
                     className={styles.availCheckbox}
@@ -1018,8 +1027,8 @@ export default function LandingPage() {
               </div>
             </div>
 
-            {/* Bento 3: 90-Day Health Guardian */}
-            <div className={styles.bentoCard}>
+            {/* Bento 3: 90-Day Health Guardian — span 2 to fill row */}
+            <div className={`${styles.bentoCard} ${styles.bentoLarge}`}>
               <div className={styles.bentoTag}>HEALTH SAFETY</div>
               <h3 className={styles.bentoTitle}>90-Day Donor Cooldown</h3>
               <p className={styles.bentoDesc}>
@@ -1028,6 +1037,19 @@ export default function LandingPage() {
               <div className={styles.cooldownBadge}>
                 <div className={styles.cooldownNum}>68 Days</div>
                 <div className={styles.cooldownLbl}>Until Next Eligible Donation</div>
+              </div>
+            </div>
+
+            {/* Bento 3b: Verified Donor Badge — fills the 3rd column in row 2 */}
+            <div className={styles.bentoCard}>
+              <div className={styles.bentoTag}>TRUST & SAFETY</div>
+              <h3 className={styles.bentoTitle}>Verified Donor Badges</h3>
+              <p className={styles.bentoDesc}>
+                Every registered donor is verified and receives a digital trust badge visible to patient families.
+              </p>
+              <div className={styles.cooldownBadge} style={{ background: "linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 100%)", border: "1.5px solid #BBF7D0" }}>
+                <div className={styles.cooldownNum} style={{ color: "#16A34A", fontSize: "28px" }}>✓ Verified</div>
+                <div className={styles.cooldownLbl}>Active Blood Donor</div>
               </div>
             </div>
 
@@ -1040,6 +1062,7 @@ export default function LandingPage() {
               </p>
             </div>
           </div>
+
         </div>
       </section>
 

@@ -89,7 +89,7 @@ export default function Footer() {
               rel="noopener noreferrer"
               className={styles.poweredByLink}
             >
-              Appstick Ltd
+              Appstick
             </a>
             <span>and</span>
             <a
@@ -98,7 +98,7 @@ export default function Footer() {
               rel="noopener noreferrer"
               className={styles.poweredByLink}
             >
-              NUBTK
+              Northern University of Business and Technology Khulna
             </a>
           </div>
         </div>

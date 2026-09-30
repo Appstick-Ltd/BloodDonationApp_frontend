@@ -100,6 +100,23 @@
   background: rgba(197, 22, 46, 0.06);
 }
 
+.navLinkActive {
+  color: #C5162E;
+  font-weight: 700;
+  position: relative;
+}
+
+.navLinkActive::after {
+  content: "";
+  position: absolute;
+  bottom: -4px;
+  left: 14px;
+  right: 14px;
+  height: 3px;
+  background: #C5162E;
+  border-radius: 9999px;
+}
+
 .navActions {
   display: flex;
   align-items: center;
@@ -112,7 +129,7 @@
   align-items: center;
   gap: 10px;
   padding: 9px 18px 9px 20px;
-  border-radius: 9999px;
+  border-radius: 12px;
   font-size: 13px;
   font-weight: 700;
   color: #FFFFFF;
