@@ -1,0 +1,256 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+Bengali:wght@400;500;600;700;800&display=swap');
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --crimson-900: #7B0A1A;
+  --crimson-800: #8B0E1F;
+  --crimson-700: #A01020;
+  --crimson-600: #C5162E;
+  --crimson-500: #E01A34;
+  --crimson-400: #F04060;
+  --crimson-100: #FFE8EC;
+  /* White/light theme backgrounds */
+  --navy-950: #FFFFFF;
+  --navy-900: #FFFFFF;
+  --navy-800: #F8F8F8;
+  --navy-700: #F0F0F0;
+  --navy-600: #E8E8E8;
+  --slate-400: #555555;
+  --slate-300: #333333;
+  --slate-200: #111111;
+  --white: #FFFFFF;
+  --glass-bg: rgba(197, 22, 46, 0.04);
+  --glass-border: rgba(197, 22, 46, 0.12);
+  --glass-hover: rgba(197, 22, 46, 0.08);
+  --red-glow: rgba(197, 22, 46, 0.3);
+  --red-glow-sm: rgba(197, 22, 46, 0.15);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Inter', 'Noto Sans Bengali', sans-serif;
+  background-color: #FFFFFF;
+  color: #0F172A;
+  overflow-x: hidden;
+  line-height: 1.6;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--navy-800); }
+::-webkit-scrollbar-thumb { background: var(--crimson-600); border-radius: 3px; }
+
+/* Animations */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInLeft {
+  from { opacity: 0; transform: translateX(-30px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes fadeInRight {
+  from { opacity: 0; transform: translateX(30px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-16px); }
+}
+
+@keyframes pulse-ring {
+  0%   { transform: scale(0.9); opacity: 0.8; }
+  70%  { transform: scale(1.15); opacity: 0; }
+  100% { transform: scale(1.15); opacity: 0; }
+}
+
+@keyframes heartbeat {
+  0%, 100% { transform: scale(1); }
+  14%      { transform: scale(1.08); }
+  28%      { transform: scale(1); }
+  42%      { transform: scale(1.05); }
+  70%      { transform: scale(1); }
+}
+
+@keyframes bgShift {
+  0%, 100% { opacity: 0.5; }
+  50%       { opacity: 1; }
+}
+
+@keyframes countUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes lineGrow {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+@keyframes rotateGlow {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes slideDown {
+  from { transform: translateY(-100%); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
+}
+
+.animate-fadeInUp    { animation: fadeInUp 0.7s ease forwards; }
+.animate-fadeInLeft  { animation: fadeInLeft 0.7s ease forwards; }
+.animate-fadeInRight { animation: fadeInRight 0.7s ease forwards; }
+.animate-float       { animation: float 4s ease-in-out infinite; }
+.animate-heartbeat   { animation: heartbeat 1.8s ease-in-out infinite; }
+
+/* Gradient text */
+.gradient-text {
+  background: linear-gradient(135deg, var(--crimson-400), #FF6B8A, var(--crimson-600));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.shimmer-text {
+  background: linear-gradient(90deg, var(--crimson-600) 0%, #FF8A9A 50%, var(--crimson-600) 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 3s linear infinite;
+}
+
+/* Glass card */
+.glass-card {
+  background: #FFFFFF;
+  border: 1px solid rgba(197, 22, 46, 0.12);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(197,22,46,0.06), 0 1px 4px rgba(0,0,0,0.06);
+  transition: all 0.3s ease;
+}
+
+.glass-card:hover {
+  background: #FFFFFF;
+  border-color: rgba(197, 22, 46, 0.25);
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(197,22,46,0.10), 0 4px 12px rgba(0,0,0,0.08);
+}
+
+/* Button styles */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 32px;
+  background: linear-gradient(135deg, var(--crimson-600), var(--crimson-700));
+  color: var(--white);
+  border: none;
+  border-radius: 50px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 20px var(--red-glow);
+}
+
+.btn-primary::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, var(--crimson-500), var(--crimson-600));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px var(--red-glow);
+}
+
+.btn-primary:hover::before { opacity: 1; }
+.btn-primary span { position: relative; z-index: 1; }
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 13px 32px;
+  background: rgba(197, 22, 46, 0.06);
+  color: #C5162E;
+  border: 1.5px solid rgba(197, 22, 46, 0.3);
+  border-radius: 50px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+  border-color: var(--crimson-500);
+  background: rgba(197, 22, 46, 0.12);
+  transform: translateY(-2px);
+}
+
+/* Section styles */
+section {
+  position: relative;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.section-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px;
+  background: rgba(197, 22, 46, 0.12);
+  border: 1px solid rgba(197, 22, 46, 0.25);
+  border-radius: 50px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--crimson-400);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 16px;
+}
+
+.section-title {
+  font-size: clamp(28px, 4vw, 48px);
+  font-weight: 800;
+  line-height: 1.2;
+  color: #111111;
+}
+
+.section-subtitle {
+  font-size: 16px;
+  color: #555555;
+  max-width: 560px;
+  line-height: 1.7;
+  margin-top: 12px;
+}

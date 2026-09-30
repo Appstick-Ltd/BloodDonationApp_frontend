@@ -1,0 +1,224 @@
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  padding: 16px 0;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.navbar.scrolled {
+  padding: 12px 0;
+  background: rgba(255, 255, 255, 0.96);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 25px rgba(0, 0, 0, 0.06);
+}
+
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.logoIcon {
+  width: 44px;
+  height: 44px;
+  background: linear-gradient(135deg, rgba(240, 64, 96, 0.15), rgba(197, 22, 46, 0.08));
+  border: 1px solid rgba(197, 22, 46, 0.2);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 14px rgba(197, 22, 46, 0.12);
+  transition: all 0.2s ease;
+}
+
+.logo:hover .logoIcon {
+  transform: scale(1.05);
+  border-color: rgba(197, 22, 46, 0.4);
+  box-shadow: 0 6px 20px rgba(197, 22, 46, 0.2);
+}
+
+.logoText {
+  font-size: 18px;
+  font-weight: 900;
+  color: #0F172A;
+  letter-spacing: -0.3px;
+  line-height: 1.1;
+}
+
+.logoAccent {
+  color: #C5162E;
+}
+
+.logoSub {
+  font-size: 10px;
+  color: #64748B;
+  font-weight: 500;
+  letter-spacing: 0.2px;
+  margin-top: 1px;
+}
+
+.navLinks {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.navLink {
+  color: #475569;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 8px 14px;
+  border-radius: 8px;
+  transition: all 0.15s ease;
+}
+
+.navLink:hover {
+  color: #C5162E;
+  background: rgba(197, 22, 46, 0.06);
+}
+
+.navActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.btnDownload {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 18px 9px 20px;
+  border-radius: 9999px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #FFFFFF;
+  text-decoration: none;
+  background: linear-gradient(135deg, #F04060, #C5162E);
+  box-shadow: 0 6px 20px rgba(197, 22, 46, 0.3);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.btnDownload:hover {
+  transform: translateY(-1px) scale(1.02);
+  box-shadow: 0 8px 25px rgba(197, 22, 46, 0.45);
+  background: linear-gradient(135deg, #FF5070, #D01835);
+}
+
+.downloadIconWrap {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hamburger {
+  display: none;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 28px;
+  height: 20px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.hamburger span {
+  display: block;
+  height: 2px;
+  width: 100%;
+  background: #0F172A;
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+
+.mobileMenu {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .navLinks {
+    display: none;
+  }
+
+  .hamburger {
+    display: flex;
+  }
+
+  .mobileMenu {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #FFFFFF;
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid #E2E8F0;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    padding: 20px 24px;
+    transform: translateY(-20px);
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.2s ease;
+  }
+
+  .mobileOpen {
+    transform: translateY(0);
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .mobileLink {
+    color: #475569;
+    text-decoration: none;
+    font-size: 15px;
+    font-weight: 600;
+    padding: 8px 0;
+    border-bottom: 1px solid #F1F5F9;
+  }
+
+  .mobileLink:hover {
+    color: #C5162E;
+  }
+
+  .mobileCta {
+    margin-top: 10px;
+    padding: 12px;
+    text-align: center;
+    background: linear-gradient(135deg, #F04060, #C5162E);
+    color: #FFFFFF;
+    font-weight: 700;
+    border-radius: 12px;
+    text-decoration: none;
+  }
+}
