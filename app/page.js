@@ -1,8 +1,10 @@
 "use client";
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { createClient } from "@supabase/supabase-js";
 import Navbar from "./components/Navbar";
+import Footer from "./components/Footer";
 import styles from "./page.module.css";
 
 const supabase = createClient(
@@ -70,6 +72,20 @@ const BLOOD_INFO = {
   },
 };
 
+const BANGLADESH_DISTRICTS = [
+  "Bagerhat", "Bandarban", "Barguna", "Barisal", "Bhola", "Bogura", "Brahmanbaria",
+  "Chandpur", "Chapainawabganj", "Chittagong", "Chuadanga", "Cox's Bazar", "Cumilla",
+  "Dhaka", "Dinajpur", "Faridpur", "Feni", "Gaibandha", "Gazipur", "Gopalganj",
+  "Habiganj", "Jamalpur", "Jessore", "Jhalokathi", "Jhenaidah", "Joypurhat",
+  "Khagrachhari", "Khulna", "Kishoreganj", "Kurigram", "Kushtia", "Lakshmipur",
+  "Lalmonirhat", "Madaripur", "Magura", "Manikganj", "Meherpur", "Moulvibazar",
+  "Munshiganj", "Mymensingh", "Naogaon", "Narail", "Narayanganj", "Narsingdi",
+  "Natore", "Netrokona", "Nilphamari", "Noakhali", "Pabna", "Panchagarh",
+  "Patuakhali", "Pirojpur", "Rajbari", "Rajshahi", "Rangamati", "Rangpur",
+  "Satkhira", "Shariatpur", "Sherpur", "Sirajganj", "Sunamganj", "Sylhet",
+  "Tangail", "Thakurgaon"
+];
+
 function useCountUp(end, duration = 2000, shouldStart = false) {
   const [count, setCount] = useState(0);
   useEffect(() => {
@@ -96,6 +112,20 @@ export default function LandingPage() {
   const [selectedBlood, setSelectedBlood] = useState("O-");
   const [recentRequests, setRecentRequests] = useState([]);
 
+  // Live Donor Search States (Default: nothing pre-selected)
+  const [searchBloodGroup, setSearchBloodGroup] = useState("");
+  const [searchDistrict, setSearchDistrict] = useState("");
+  const [searchAreaKeyword, setSearchAreaKeyword] = useState("");
+  const [searchOnlyAvailable, setSearchOnlyAvailable] = useState(false);
+  const [searchResults, setSearchResults] = useState([]);
+  const [showAllDonors, setShowAllDonors] = useState(false);
+  const [searchTotalCount, setSearchTotalCount] = useState(0);
+  const [searchAvailableCount, setSearchAvailableCount] = useState(0);
+  const [isSearching, setIsSearching] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
+  const [searchError, setSearchError] = useState(null);
+  const [dbDistricts, setDbDistricts] = useState(["Khulna", "Dhaka", "Chittagong", "Rajshahi", "Sylhet", "Barisal"]);
+
   const [bloodGroupDist, setBloodGroupDist] = useState([
     { group: "A+", pct: 0, count: 0, color: "#C5162E" },
     { group: "B+", pct: 0, count: 0, color: "#E01A34" },
@@ -118,7 +148,12 @@ export default function LandingPage() {
         .from("emergency_requests").select("id", { count: "exact", head: true }).eq("status", "Fulfilled");
       const { data: districtData } = await supabase
         .from("profiles").select("district").not("district", "is", null);
-      const uniqueDistricts = new Set((districtData || []).map((p) => p.district?.trim()).filter(Boolean)).size;
+      const districtList = (districtData || []).map((p) => p.district?.trim()).filter(Boolean);
+      const uniqueDistricts = new Set(districtList).size;
+      const uniqueDistinctList = Array.from(new Set(districtList));
+      if (uniqueDistinctList.length > 0) {
+        setDbDistricts(uniqueDistinctList);
+      }
 
       setLiveStats({
         donors: donorsRes.count || 0,
@@ -154,6 +189,73 @@ export default function LandingPage() {
     }
   }, []);
 
+  const executeDonorSearch = useCallback(async (overrideGroup, overrideDistrict, overrideOnlyAvail, overrideArea) => {
+    const bg = overrideGroup !== undefined ? overrideGroup : searchBloodGroup;
+    const dist = overrideDistrict !== undefined ? overrideDistrict : searchDistrict;
+    const onlyAvail = overrideOnlyAvail !== undefined ? overrideOnlyAvail : searchOnlyAvailable;
+    const area = overrideArea !== undefined ? overrideArea : searchAreaKeyword;
+
+    setIsSearching(true);
+    setSearchError(null);
+    try {
+      let query = supabase
+        .from("profiles")
+        .select("id, full_name, blood_group, district, area, is_available, is_eligible, last_donation_date, created_at, gender", { count: "exact" });
+
+      if (bg && bg !== "All") {
+        query = query.eq("blood_group", bg);
+      }
+
+      if (dist && dist !== "All") {
+        query = query.or(`district.ilike.%${dist}%,area.ilike.%${dist}%`);
+      }
+
+      if (area && area.trim()) {
+        const clean = area.trim();
+        query = query.or(`area.ilike.%${clean}%,district.ilike.%${clean}%`);
+      }
+
+      if (onlyAvail) {
+        query = query.eq("is_available", true);
+      }
+
+      query = query.order("is_available", { ascending: false }).order("created_at", { ascending: false }).limit(24);
+
+      const { data, count, error } = await query;
+      if (error) {
+        console.error("Search donor error:", error);
+        setSearchError(error.message);
+      } else {
+        const donorsList = data || [];
+        setSearchResults(donorsList);
+        setSearchTotalCount(count !== null && count !== undefined ? count : donorsList.length);
+        const availCount = donorsList.filter((d) => d.is_available).length;
+        setSearchAvailableCount(availCount);
+      }
+      setHasSearched(true);
+    } catch (err) {
+      console.error("Error executing donor search:", err);
+      setSearchError(err.message || "Failed to search donors");
+    } finally {
+      setIsSearching(false);
+    }
+  }, [searchBloodGroup, searchDistrict, searchOnlyAvailable, searchAreaKeyword]);
+
+  const handleQuickFilter = (group, district, onlyAvail = false) => {
+    setShowAllDonors(false);
+    setSearchBloodGroup(group);
+    setSearchDistrict(district);
+    setSearchOnlyAvailable(onlyAvail);
+    setSearchAreaKeyword("");
+    executeDonorSearch(group, district, onlyAvail, "");
+  };
+
+  const handleSearchSubmit = (e) => {
+    if (e) e.preventDefault();
+    setShowAllDonors(false);
+    executeDonorSearch();
+  };
+
   useEffect(() => {
     fetchStats();
     const interval = setInterval(fetchStats, 30000);
@@ -176,6 +278,11 @@ export default function LandingPage() {
   const districtsCount = useCountUp(liveStats.districts, 2200, statsVisible && !statsLoading);
 
   const activeBloodData = useMemo(() => BLOOD_INFO[selectedBlood], [selectedBlood]);
+
+  // Show only 2 lines (6 cards in a 3-col grid) by default
+  const displayedDonors = useMemo(() => {
+    return showAllDonors ? searchResults : searchResults.slice(0, 6);
+  }, [showAllDonors, searchResults]);
 
   return (
     <main className={styles.main}>
@@ -210,13 +317,16 @@ export default function LandingPage() {
 
               {/* Action Area */}
               <div className={styles.heroActions}>
-                <a href="#download" className={styles.btnPrimaryLg}>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
-                  <span>Download BloodBanks</span>
+                <a href="#find-donors" className={styles.btnPrimaryLg}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                  </svg>
+                  <span>Find Donors Now</span>
                 </a>
-                <a href="#compatibility" className={styles.btnSecondaryLg}>
-                  <span>Compatibility Guide</span>
-                  <span>→</span>
+                <a href="#download" className={styles.btnSecondaryLg}>
+                  <span>Download App</span>
+                  <span>↓</span>
                 </a>
               </div>
 
@@ -362,6 +472,387 @@ export default function LandingPage() {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ===================== LIVE DONOR SEARCH & AVAILABILITY CHECKER ===================== */}
+      <section className={styles.searchSection} id="find-donors">
+        <div className="container">
+          <div className={styles.searchContainerCard}>
+            {/* Header info */}
+            <div className={styles.searchCardHeader}>
+              <div className={styles.searchTopBadge}>
+                <span className={styles.searchPulseDot} />
+                <span>REAL-TIME DONOR DATABASE (64 DISTRICTS)</span>
+              </div>
+              <h2 className={styles.searchSectionTitle}>
+                Find Voluntary Donors <span className={styles.crimsonGradient}>in Your City</span>
+              </h2>
+              <p className={styles.searchSectionSub}>
+                Select blood group and district to check registered voluntary donors ready to donate immediately.
+              </p>
+            </div>
+
+            {/* Filter controls form */}
+            <form onSubmit={handleSearchSubmit} className={styles.searchFormBox}>
+              <div className={styles.searchControlsRow}>
+                {/* Blood Group Select */}
+                <div className={styles.searchControlGroup}>
+                  <label className={styles.controlLabel}>
+                    <span className={styles.controlIcon}>🩸</span> Blood Group
+                  </label>
+                  <select
+                    value={searchBloodGroup}
+                    onChange={(e) => setSearchBloodGroup(e.target.value)}
+                    className={styles.controlSelect}
+                  >
+                    <option value="">Select Blood Group</option>
+                    <option value="All">All Blood Groups</option>
+                    {["A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"].map((bg) => (
+                      <option key={bg} value={bg}>
+                        {bg} Blood Group
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* District / City Select */}
+                <div className={styles.searchControlGroup}>
+                  <label className={styles.controlLabel}>
+                    <span className={styles.controlIcon}>📍</span> District / City
+                  </label>
+                  <select
+                    value={searchDistrict}
+                    onChange={(e) => setSearchDistrict(e.target.value)}
+                    className={styles.controlSelect}
+                  >
+                    <option value="">Select District / City</option>
+                    <option value="All">All Districts</option>
+                    <optgroup label="Active Donor Regions">
+                      {dbDistricts.map((d) => (
+                        <option key={`active-${d}`} value={d}>
+                          {d}
+                        </option>
+                      ))}
+                    </optgroup>
+                    <optgroup label="All 64 Districts">
+                      {BANGLADESH_DISTRICTS.map((d) => (
+                        <option key={`all-${d}`} value={d}>
+                          {d}
+                        </option>
+                      ))}
+                    </optgroup>
+                  </select>
+                </div>
+
+                {/* Thana / Area Keyword */}
+                <div className={styles.searchControlGroup}>
+                  <label className={styles.controlLabel}>
+                    <span className={styles.controlIcon}>🏘️</span> Area / Thana (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Sonadanga, Khulna City..."
+                    value={searchAreaKeyword}
+                    onChange={(e) => setSearchAreaKeyword(e.target.value)}
+                    className={styles.controlInput}
+                  />
+                </div>
+
+                {/* Search Button */}
+                <div className={styles.searchBtnWrap}>
+                  <button
+                    type="submit"
+                    disabled={isSearching}
+                    className={styles.searchSubmitBtn}
+                  >
+                    {isSearching ? (
+                      <>
+                        <span className={styles.searchSpinner} />
+                        <span>Checking...</span>
+                      </>
+                    ) : (
+                      <>
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <circle cx="11" cy="11" r="8"></circle>
+                          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                        <span>Check Donors</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* Sub-bar: Quick Filter Chips & Only Available toggle */}
+              <div className={styles.searchSubControls}>
+                <div className={styles.quickChipsBox}>
+                  <span className={styles.quickLabel}>Quick:</span>
+                  <button
+                    type="button"
+                    className={`${styles.quickChip} ${searchDistrict === "Khulna" && searchBloodGroup === "All" ? styles.quickChipActive : ""}`}
+                    onClick={() => handleQuickFilter("All", "Khulna")}
+                  >
+                    🩸 All Khulna
+                  </button>
+                  <button
+                    type="button"
+                    className={`${styles.quickChip} ${searchDistrict === "Khulna" && searchBloodGroup === "B+" ? styles.quickChipActive : ""}`}
+                    onClick={() => handleQuickFilter("B+", "Khulna")}
+                  >
+                    🩸 B+ Khulna
+                  </button>
+                  <button
+                    type="button"
+                    className={`${styles.quickChip} ${searchDistrict === "Khulna" && searchBloodGroup === "O+" ? styles.quickChipActive : ""}`}
+                    onClick={() => handleQuickFilter("O+", "Khulna")}
+                  >
+                    🩸 O+ Khulna
+                  </button>
+                  <button
+                    type="button"
+                    className={`${styles.quickChip} ${searchDistrict === "Dhaka" ? styles.quickChipActive : ""}`}
+                    onClick={() => handleQuickFilter("All", "Dhaka")}
+                  >
+                    🩸 Dhaka Donors
+                  </button>
+                  <button
+                    type="button"
+                    className={`${styles.quickChip} ${searchBloodGroup === "O-" ? styles.quickChipActive : ""}`}
+                    onClick={() => handleQuickFilter("O-", "All")}
+                  >
+                    🩸 Urgent O-
+                  </button>
+                  <button
+                    type="button"
+                    className={`${styles.quickChip} ${searchDistrict === "All" && searchBloodGroup === "All" ? styles.quickChipActive : ""}`}
+                    onClick={() => handleQuickFilter("All", "All")}
+                  >
+                    🌐 All BD
+                  </button>
+                </div>
+
+                <label className={styles.availToggleContainer}>
+                  <input
+                    type="checkbox"
+                    checked={searchOnlyAvailable}
+                    onChange={(e) => {
+                      setSearchOnlyAvailable(e.target.checked);
+                      if (hasSearched) {
+                        executeDonorSearch(undefined, undefined, e.target.checked);
+                      }
+                    }}
+                    className={styles.availCheckbox}
+                  />
+                  <span className={styles.availToggleText}>Available Now Only</span>
+                </label>
+              </div>
+            </form>
+
+            {/* Results Live Indicator Header & Cards OR Initial Prompt */}
+            {!hasSearched ? (
+              <div className={styles.searchPromptCard}>
+                <div className={styles.promptIconWrap}>
+                  <span className={styles.promptIcon}>🩸</span>
+                </div>
+                <h3 className={styles.promptTitle}>Search Voluntary Donors in Real-Time</h3>
+                <p className={styles.promptSub}>
+                  Select your required blood group and district above to check available voluntary donors in real-time, or choose popular quick filters.
+                </p>
+                <div className={styles.promptStatsRow}>
+                  <div className={styles.promptStatItem}>
+                    <span className={styles.promptStatVal}>100% Free</span>
+                    <span className={styles.promptStatLbl}>Voluntary Network</span>
+                  </div>
+                  <div className={styles.promptStatDivider} />
+                  <div className={styles.promptStatItem}>
+                    <span className={styles.promptStatVal}>64 Districts</span>
+                    <span className={styles.promptStatLbl}>Bangladesh-wide</span>
+                  </div>
+                  <div className={styles.promptStatDivider} />
+                  <div className={styles.promptStatItem}>
+                    <span className={styles.promptStatVal}>Verified</span>
+                    <span className={styles.promptStatLbl}>Protected Donors</span>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <>
+                {/* Results Live Indicator Header */}
+                <div className={styles.resultsLiveBanner}>
+                  <div className={styles.resultsCounterBlock}>
+                    <div className={styles.bigCountNumber}>
+                      {searchTotalCount}
+                    </div>
+                    <div className={styles.bigCountCopy}>
+                      <div className={styles.bigCountHeading}>
+                        {searchTotalCount > 0
+                          ? `${searchTotalCount} Voluntary Donor${searchTotalCount > 1 ? "s" : ""} Found`
+                          : "0 Donors Found for Selected Filter"}
+                      </div>
+                      <div className={styles.bigCountSub}>
+                        {searchAvailableCount > 0 ? (
+                          <span className={styles.readyHighlight}>
+                            🟢 <strong>{searchAvailableCount} Available to donate right now</strong> in {searchDistrict === "All" || !searchDistrict ? "Bangladesh" : searchDistrict}
+                          </span>
+                        ) : searchTotalCount > 0 ? (
+                          <span>All registered donors in this filter are currently in recovery/cooldown</span>
+                        ) : (
+                          <span>Try choosing &quot;All Districts&quot; or clearing area filters</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className={styles.activeFilterPillsRow}>
+                    <span className={styles.filterPillItem}>
+                      Blood: <strong>{searchBloodGroup || "All"}</strong>
+                    </span>
+                    <span className={styles.filterPillItem}>
+                      Region: <strong>{searchDistrict === "All" || !searchDistrict ? "All Bangladesh" : searchDistrict}</strong>
+                    </span>
+                    {searchAreaKeyword && (
+                      <span className={styles.filterPillItem}>
+                        Area: <strong>{searchAreaKeyword}</strong>
+                      </span>
+                    )}
+                    {searchOnlyAvailable && (
+                      <span className={styles.filterPillItemReady}>
+                        ✓ Ready Only
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Donor Cards Grid or Empty State */}
+                {searchResults.length > 0 ? (
+                  <>
+                    <div className={styles.donorsListGrid}>
+                      {displayedDonors.map((donor) => {
+                        const initials = (donor.full_name || "D")
+                          .split(" ")
+                          .map((n) => n[0])
+                          .slice(0, 2)
+                          .join("")
+                          .toUpperCase();
+                        const hasPhoto = donor.profile_image_url && donor.profile_image_url.startsWith("http");
+
+                        return (
+                          <div key={donor.id} className={styles.donorProfileCard}>
+                            <div className={styles.cardHeaderArea}>
+                              <div className={styles.avatarHolder}>
+                                {hasPhoto ? (
+                                  <img
+                                    src={donor.profile_image_url}
+                                    alt={donor.full_name}
+                                    className={styles.avatarPhoto}
+                                  />
+                                ) : (
+                                  <div className={styles.avatarInitialBadge}>
+                                    {initials}
+                                  </div>
+                                )}
+                                <span className={styles.bloodTypeCornerBadge}>
+                                  {donor.blood_group || "B+"}
+                                </span>
+                              </div>
+
+                              <div className={styles.nameBlock}>
+                                <div className={styles.donorNameLine}>
+                                  <h4 className={styles.cardDonorName}>{donor.full_name || "Registered Donor"}</h4>
+                                  <span className={styles.verifiedCheckBadge} title="Verified Donor">✓</span>
+                                </div>
+                                <div className={styles.cardLocationLine}>
+                                  <span className={styles.pinIcon}>📍</span>
+                                  <span>{donor.district || "Bangladesh"}{donor.area ? `, ${donor.area}` : ""}</span>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className={styles.cardStatusRow}>
+                              {donor.is_available ? (
+                                <span className={styles.statusPillReady}>
+                                  <span className={styles.statusDotGreen} /> Available Now
+                                </span>
+                              ) : (
+                                <span className={styles.statusPillRest}>
+                                  <span className={styles.statusDotAmber} /> In Cooldown
+                                </span>
+                              )}
+                              <span className={styles.lastDonationMeta}>
+                                {donor.last_donation_date ? `Last: ${donor.last_donation_date}` : "Ready to donate"}
+                              </span>
+                            </div>
+
+                            <div className={styles.cardFooterAction}>
+                              <a
+                                href="#download"
+                                className={styles.callDonorAction}
+                                title="Connect via BloodBanks App"
+                              >
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                  <polyline points="7 10 12 15 17 10" />
+                                  <line x1="12" y1="15" x2="12" y2="3" />
+                                </svg>
+                                <span>Connect via App</span>
+                              </a>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {searchResults.length > 6 && (
+                      <div className={styles.showMoreContainer}>
+                        <button
+                          type="button"
+                          className={styles.showMoreBtn}
+                          onClick={() => setShowAllDonors(!showAllDonors)}
+                        >
+                          {showAllDonors ? (
+                            <>
+                              <span>Show Less</span>
+                              <span>↑</span>
+                            </>
+                          ) : (
+                            <>
+                              <span>View More Donors ({searchResults.length - 6} more)</span>
+                              <span>↓</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className={styles.noResultsBox}>
+                    <div className={styles.noResultsIcon}>🩸</div>
+                    <h3 className={styles.noResultsTitle}>No Registered Donors Found</h3>
+                    <p className={styles.noResultsSub}>
+                      No donors matching <strong>{searchBloodGroup || "this blood group"}</strong> in <strong>{searchDistrict || "this region"}</strong> were found right now.
+                    </p>
+                    <div className={styles.noResultsBtnsRow}>
+                      <button
+                        type="button"
+                        className={styles.btnResetSearch}
+                        onClick={() => handleQuickFilter("All", "Khulna")}
+                      >
+                        View All Khulna Donors
+                      </button>
+                      <button
+                        type="button"
+                        className={styles.btnResetAllSearch}
+                        onClick={() => handleQuickFilter("All", "All")}
+                      >
+                        Search All Bangladesh
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
           </div>
         </div>
       </section>
@@ -700,7 +1191,12 @@ export default function LandingPage() {
 
                 {/* App Store Buttons */}
                 <div className={styles.storeBadgesRow}>
-                  <a href="https://play.google.com" target="_blank" rel="noopener noreferrer" className={styles.appStoreBtn}>
+                  <a
+                    href="https://play.google.com/store/apps"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={styles.appStoreBtn}
+                  >
                     <svg className={styles.appStoreSvg} viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
                       <path fill="#4285F4" d="M48.7 18.5c-4.8 5.2-7.7 13-7.7 23v429c0 10 2.9 17.8 7.7 23l2.4 2.4L275 272v-5.8L51.1 16.1l-2.4 2.4z"></path>
                       <path fill="#FFBA00" d="M350.8 347.8l-75.8-75.8V266l75.8-75.8 1.8 1 89.8 51.1c25.7 14.6 25.7 38.5 0 53.1l-89.8 51.1-1.8 1.4z"></path>
@@ -713,7 +1209,12 @@ export default function LandingPage() {
                     </div>
                   </a>
 
-                  <a href="https://apple.com" target="_blank" rel="noopener noreferrer" className={styles.appStoreBtn}>
+                  <a
+                    href="https://www.apple.com/app-store/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={styles.appStoreBtn}
+                  >
                     <svg className={styles.appStoreSvg} viewBox="0 0 384 512" fill="#FFFFFF" xmlns="http://www.w3.org/2000/svg">
                       <path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z"></path>
                     </svg>
@@ -724,84 +1225,13 @@ export default function LandingPage() {
                   </a>
                 </div>
               </div>
-
-              {/* QR Scanner Card */}
-              <div className={styles.ctaQrCol}>
-                <div className={styles.qrDeviceBox}>
-                  <div className={styles.qrInnerWhite}>
-                    <svg width="128" height="128" viewBox="0 0 24 24" fill="#0F172A">
-                      <rect x="2" y="2" width="8" height="8" rx="1.5" stroke="#0F172A" strokeWidth="1.5" fill="none" />
-                      <rect x="4.5" y="4.5" width="3" height="3" fill="#C5162E" />
-                      <rect x="14" y="2" width="8" height="8" rx="1.5" stroke="#0F172A" strokeWidth="1.5" fill="none" />
-                      <rect x="16.5" y="4.5" width="3" height="3" fill="#C5162E" />
-                      <rect x="2" y="14" width="8" height="8" rx="1.5" stroke="#0F172A" strokeWidth="1.5" fill="none" />
-                      <rect x="4.5" y="16.5" width="3" height="3" fill="#C5162E" />
-                      <rect x="14" y="14" width="2" height="2" fill="#0F172A" />
-                      <rect x="18" y="14" width="2" height="2" fill="#0F172A" />
-                      <rect x="14" y="18" width="4" height="2" fill="#0F172A" />
-                      <rect x="20" y="18" width="2" height="4" fill="#0F172A" />
-                    </svg>
-                  </div>
-                  <span className={styles.qrHelper}>Instant Mobile Camera Install</span>
-                </div>
-              </div>
             </div>
           </div>
         </div>
       </section>
 
       {/* ===================== FOOTER ===================== */}
-      <footer className={styles.footer}>
-        <div className="container">
-          <div className={styles.footerTop}>
-            <div className={styles.footerBrand}>
-              <div className={styles.footerLogoWrap}>
-                <div className={styles.logoRedIcon}>
-                  <svg width="22" height="28" viewBox="0 0 22 28" fill="none">
-                    <path d="M11 0C11 0 1 10.5 1 17C1 22.523 5.477 27 11 27C16.523 27 21 22.523 21 17C21 10.5 11 0 11 0Z" fill="url(#ftBlood)" />
-                    <defs><linearGradient id="ftBlood" x1="11" y1="0" x2="11" y2="27" gradientUnits="userSpaceOnUse"><stop stopColor="#F04060" /><stop offset="1" stopColor="#C5162E" /></linearGradient></defs>
-                  </svg>
-                </div>
-                <div>
-                  <span className={styles.brandTitle}>BLOOD <span style={{ color: "#C5162E" }}>BANKS</span></span>
-                  <div className={styles.brandSub}>Intelligent Blood Donation Network</div>
-                </div>
-              </div>
-              <p className={styles.footerTagline}>
-                Empowering voluntary donors and saving critical patients across 64 districts in Bangladesh.
-              </p>
-            </div>
-
-            <div className={styles.footerLinksGrid}>
-              <div className={styles.linkColumn}>
-                <div className={styles.colTitle}>Platform</div>
-                <a href="#home">Home</a>
-                <a href="#compatibility">Compatibility Matrix</a>
-                <a href="#features">Smart Proximity</a>
-                <a href="#how-it-works">Pipeline</a>
-                <a href="#statistics">Live Supabase Impact</a>
-              </div>
-              <div className={styles.linkColumn}>
-                <div className={styles.colTitle}>Guidelines</div>
-                <a href="#">Donor Eligibility Criteria</a>
-                <a href="#">Post-Donation Rest Guide</a>
-                <a href="#">Hospital Coordination</a>
-                <a href="#">Privacy Policy</a>
-              </div>
-            </div>
-          </div>
-
-          <div className={styles.footerBottomBar}>
-            <p>© 2024 Blood Banks. Developed by Appstick Ltd. All rights reserved.</p>
-            <div className={styles.footerBottomActions}>
-              <a href="#">Security</a>
-              <a href="#">Terms of Use</a>
-              {/* Secret Internal Admin Access Dot */}
-              <Link href="/admin/login" className={styles.secretAdminDot} title="">•</Link>
-            </div>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </main>
   );
 }

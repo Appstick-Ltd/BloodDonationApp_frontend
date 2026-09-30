@@ -1,0 +1,254 @@
+/* Footer Styles - Clean White/Light Theme with Blood Banks Crimson Palette */
+
+.footer {
+  position: relative;
+  z-index: 20;
+  background: #F8FAFC;
+  border-top: 1px solid #E2E8F0;
+  color: #64748B;
+  font-family: inherit;
+  padding: 64px 0 28px;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.footerGrid {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr 1.1fr;
+  gap: 60px;
+  padding-bottom: 48px;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+/* Col 1: Brand */
+.brandCol {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.brandLogoWrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+}
+
+.brandIconBox {
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  background: #FFE8EC;
+  border: 1.5px solid rgba(197, 22, 46, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  box-shadow: 0 4px 14px rgba(197, 22, 46, 0.12);
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.brandLogoWrap:hover .brandIconBox {
+  transform: scale(1.05);
+  border-color: #C5162E;
+}
+
+.brandTitle {
+  font-size: 20px;
+  font-weight: 900;
+  color: #0F172A;
+  letter-spacing: -0.3px;
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+.crimsonAccent {
+  color: #C5162E;
+}
+
+.brandSub {
+  font-size: 11px;
+  color: #64748B;
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+.brandDesc {
+  font-size: 13px;
+  color: #475569;
+  line-height: 1.65;
+  margin: 0;
+  max-width: 360px;
+}
+
+.socialRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-top: 8px;
+}
+
+.socialBtn {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.socialBtn:hover {
+  background: #FFF1F3;
+  border-color: #C5162E;
+  color: #C5162E;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(197, 22, 46, 0.15);
+}
+
+/* Col Titles */
+.colTitle {
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #0F172A;
+  margin-bottom: 18px;
+}
+
+/* Links List */
+.linkList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.footerLink {
+  font-size: 13px;
+  color: #64748B;
+  text-decoration: none;
+  transition: all 0.18s ease;
+  display: inline-block;
+  line-height: 1.4;
+}
+
+.footerLink:hover {
+  color: #C5162E;
+  transform: translateX(3px);
+}
+
+.highlightLink {
+  color: #0F172A;
+  font-weight: 700;
+}
+
+.highlightLink:hover {
+  color: #C5162E;
+}
+
+/* Bottom Bar */
+.bottomBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 28px;
+  font-size: 12.5px;
+  color: #64748B;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.copyrightText {
+  margin: 0;
+  color: #64748B;
+  font-size: 12.5px;
+}
+
+.legalLinksWrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+}
+
+.legalLink {
+  color: #64748B;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.legalLink:hover {
+  color: #C5162E;
+}
+
+.dotSep {
+  color: #CBD5E1;
+}
+
+.poweredByWrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  color: #64748B;
+}
+
+.poweredByLink {
+  color: #0F172A;
+  font-weight: 700;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.poweredByLink:hover {
+  color: #C5162E;
+}
+
+.partnerText {
+  color: #0F172A;
+  font-weight: 700;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .footerGrid {
+    grid-template-columns: 1fr 1fr;
+    gap: 36px;
+  }
+
+  .brandCol {
+    grid-column: span 2;
+  }
+}
+
+@media (max-width: 600px) {
+  .footerGrid {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+
+  .brandCol {
+    grid-column: span 1;
+  }
+
+  .bottomBar {
+    flex-direction: column;
+    text-align: center;
+    justify-content: center;
+    gap: 14px;
+  }
+}

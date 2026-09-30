@@ -1,15 +1,17 @@
 "use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import styles from "./Navbar.module.css";
 
 const navLinks = [
-  { label: "Home", href: "#home" },
-  { label: "Features", href: "#features" },
-  { label: "How It Works", href: "#how-it-works" },
-  { label: "Benefits", href: "#benefits" },
-  { label: "Statistics", href: "#statistics" },
-  { label: "Download", href: "#download" },
+  { label: "Home", href: "/#home" },
+  { label: "Find Donors", href: "/#find-donors" },
+  { label: "Features", href: "/#features" },
+  { label: "How It Works", href: "/#how-it-works" },
+  { label: "Statistics", href: "/#statistics" },
+  { label: "Blog & Guides", href: "/guides" },
+  { label: "Download", href: "/#download" },
 ];
 
 export default function Navbar() {
@@ -28,18 +30,14 @@ export default function Navbar() {
         {/* Logo */}
         <Link href="/" className={styles.logo}>
           <div className={styles.logoIcon}>
-            <svg width="22" height="28" viewBox="0 0 22 28" fill="none">
-              <path
-                d="M11 0C11 0 1 10.5 1 17C1 22.523 5.477 27 11 27C16.523 27 21 22.523 21 17C21 10.5 11 0 11 0Z"
-                fill="url(#navBloodGrad)"
-              />
-              <defs>
-                <linearGradient id="navBloodGrad" x1="11" y1="0" x2="11" y2="27" gradientUnits="userSpaceOnUse">
-                  <stop stopColor="#F04060" />
-                  <stop offset="1" stopColor="#A01020" />
-                </linearGradient>
-              </defs>
-            </svg>
+            <Image
+              src="/appIcon.png"
+              alt="Blood Banks Logo"
+              width={30}
+              height={30}
+              style={{ objectFit: "contain" }}
+              priority
+            />
           </div>
           <div>
             <div className={styles.logoText}>
@@ -62,7 +60,7 @@ export default function Navbar() {
 
         {/* CTA Button */}
         <div className={styles.navActions}>
-          <a href="#download" className={styles.btnDownload}>
+          <a href="/#download" className={styles.btnDownload}>
             <span>Download App</span>
             <div className={styles.downloadIconWrap}>
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -93,7 +91,7 @@ export default function Navbar() {
             {link.label}
           </a>
         ))}
-        <a href="#download" className={styles.mobileCta} onClick={() => setMenuOpen(false)}>
+        <a href="/#download" className={styles.mobileCta} onClick={() => setMenuOpen(false)}>
           Download App ↓
         </a>
       </div>
