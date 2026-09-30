@@ -27,20 +27,151 @@ function formatRequestId(id) {
   return `#REQ-${clean.slice(0, 8)}`;
 }
 
+function parseRequestNotes(notes) {
+  if (!notes) return { hasContent: false, conditionText: "", details: {}, others: {} };
+  const raw = String(notes).trim();
+  if (!raw) return { hasContent: false, conditionText: "", details: {}, others: {} };
+
+  // 1. JSON Format
+  if ((raw.startsWith("{") && raw.endsWith("}")) || (raw.startsWith("[") && raw.endsWith("]"))) {
+    try {
+      const parsed = JSON.parse(raw);
+      if (typeof parsed === "object" && parsed !== null) {
+        const details = {};
+        let conditionText = "";
+
+        if (parsed.schedule_display || parsed.schedule) {
+          details.schedule = String(parsed.schedule_display || parsed.schedule).trim();
+        }
+        if (parsed.contact_person || parsed.contactPerson || parsed.attendant) {
+          details.contactPerson = String(parsed.contact_person || parsed.contactPerson || parsed.attendant).trim();
+        }
+        if (parsed.relationship || parsed.relation) {
+          details.relationship = String(parsed.relationship || parsed.relation).trim();
+        }
+        if (parsed.ward || parsed.ward_no || parsed.wardNo) {
+          details.ward = String(parsed.ward || parsed.ward_no || parsed.wardNo).trim();
+        }
+        if (parsed.bed || parsed.bed_no || parsed.cabin) {
+          details.bed = String(parsed.bed || parsed.bed_no || parsed.cabin).trim();
+        }
+
+        const noteCandidates = [
+          parsed.medical_condition,
+          parsed.condition,
+          parsed.reason,
+          parsed.medical_reason,
+          parsed.notes,
+          parsed.note,
+          parsed.description,
+          parsed.details
+        ].filter(Boolean);
+
+        if (noteCandidates.length > 0) {
+          conditionText = String(noteCandidates[0]).trim();
+        }
+
+        const handledKeys = new Set([
+          "schedule_display", "schedule", "contact_person", "contactPerson", "attendant",
+          "relationship", "relation", "ward", "ward_no", "wardNo", "bed", "bed_no", "cabin",
+          "medical_condition", "condition", "reason", "medical_reason", "notes", "note", "description", "details"
+        ]);
+
+        const others = {};
+        for (const [k, v] of Object.entries(parsed)) {
+          if (!handledKeys.has(k) && v !== null && v !== undefined && v !== "") {
+            const label = k.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+            others[label] = String(v);
+          }
+        }
+
+        return {
+          hasContent: true,
+          isJson: true,
+          conditionText,
+          details,
+          others,
+          raw
+        };
+      }
+    } catch {
+      // not valid JSON, proceed to other checks
+    }
+  }
+
+  // 2. Direct Request: DIRECT_REQ_FOR:<uid>|<reason>
+  if (raw.includes("DIRECT_REQ_FOR:")) {
+    const parts = raw.split("|");
+    const reason = parts.slice(1).join(" | ").trim();
+    return {
+      hasContent: Boolean(reason),
+      isJson: false,
+      isDirectReq: true,
+      conditionText: reason || "Direct emergency blood request",
+      details: {},
+      others: {},
+      raw
+    };
+  }
+
+  // 3. TAG:id|reason
+  if (/^[A-Z0-9_]+:[a-zA-Z0-9_-]+\|/.test(raw)) {
+    const cleaned = raw.replace(/^[A-Z0-9_]+:[a-zA-Z0-9_-]+\|/, "").trim();
+    return {
+      hasContent: Boolean(cleaned),
+      isJson: false,
+      conditionText: cleaned,
+      details: {},
+      others: {},
+      raw
+    };
+  }
+
+  // 4. Plain text
+  return {
+    hasContent: true,
+    isJson: false,
+    conditionText: raw,
+    details: {},
+    others: {},
+    raw
+  };
+}
+
 function cleanNotes(notes) {
-  if (!notes) return "";
-  let text = String(notes).trim();
+  const parsed = parseRequestNotes(notes);
+  return parsed.conditionText || "";
+}
 
-  if (text.includes("DIRECT_REQ_FOR:")) {
-    const parts = text.split("|");
-    text = parts.slice(1).join(" | ").trim();
+function formatDynamicSchedule(neededDateTime, staticSchedule) {
+  if (!neededDateTime) return staticSchedule || "";
+
+  const target = new Date(neededDateTime);
+  if (isNaN(target.getTime())) return staticSchedule || "";
+
+  const now = new Date();
+
+  // Normalize to local midnight for accurate calendar day difference
+  const targetMidnight = new Date(target.getFullYear(), target.getMonth(), target.getDate()).getTime();
+  const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const oneDay = 1000 * 60 * 60 * 24;
+  const dayDiff = Math.round((targetMidnight - todayMidnight) / oneDay);
+
+  const timeStr = target.toLocaleTimeString([], { hour: "numeric", minute: "2-digit", hour12: true });
+  const isBengali = staticSchedule && /[\u0980-\u09FF]/.test(staticSchedule);
+
+  if (dayDiff === 0) {
+    return isBengali ? `আজ by ${timeStr}` : `Today by ${timeStr}`;
+  } else if (dayDiff === 1) {
+    return isBengali ? `আগামীকাল by ${timeStr}` : `Tomorrow by ${timeStr}`;
+  } else if (dayDiff === -1) {
+    return isBengali ? `গতকাল by ${timeStr}` : `Yesterday by ${timeStr}`;
+  } else if (dayDiff > 1) {
+    return isBengali ? `${dayDiff} দিন পর by ${timeStr}` : `In ${dayDiff} days by ${timeStr}`;
+  } else {
+    const pastDays = Math.abs(dayDiff);
+    return isBengali ? `${pastDays} দিন আগে by ${timeStr}` : `${pastDays} days ago by ${timeStr}`;
   }
-
-  if (/^[A-Z0-9_]+:[a-zA-Z0-9_-]+\|/.test(text)) {
-    text = text.replace(/^[A-Z0-9_]+:[a-zA-Z0-9_-]+\|/, "").trim();
-  }
-
-  return text || "Direct emergency blood request";
 }
 
 // -------------------------------------------------------------
@@ -1444,79 +1575,116 @@ export default function AdminDashboard() {
       </main>
 
       {/* Request Details Modal */}
-      {selectedRequest && (
-        <div className={styles.modalOverlay} onClick={() => setSelectedRequest(null)}>
-          <div className={styles.modalCard} onClick={(e) => e.stopPropagation()}>
-            <div className={styles.modalHeader}>
-              <div>
-                <h2>Emergency Request Details</h2>
-                <div className={styles.reqIdRow}>
-                  <span className={styles.reqIdBadge}>{formatRequestId(selectedRequest.id)}</span>
-                  <span className={styles.reqIdType}>
-                    {selectedRequest.notes?.includes("DIRECT_REQ_FOR:") ? "Direct Request" : "Public Emergency"}
-                  </span>
-                </div>
-              </div>
-              <button className={styles.closeBtn} onClick={() => setSelectedRequest(null)}>✕</button>
-            </div>
-
-            <div className={styles.modalBody}>
-              <div className={styles.modalGrid}>
-                <div className={styles.modalItem}>
-                  <label>Patient Name</label>
-                  <p>{selectedRequest.patient_name}</p>
-                </div>
-                <div className={styles.modalItem}>
-                  <label>Blood Group Needed</label>
-                  <p><span className={styles.bloodPill}>{selectedRequest.blood_group}</span> ({selectedRequest.units_required || 1} Bag)</p>
-                </div>
-                <div className={styles.modalItem}>
-                  <label>Hospital</label>
-                  <p>{selectedRequest.hospital_name}</p>
-                </div>
-                <div className={styles.modalItem}>
-                  <label>Urgency Level</label>
-                  <p>
-                    <span className={`${styles.badge} ${selectedRequest.urgency_level === "Critical" ? styles.badgeCritical : selectedRequest.urgency_level === "Urgent" ? styles.badgeUrgent : styles.badgeStandard}`}>
-                      {selectedRequest.urgency_level}
+      {selectedRequest && (() => {
+        const parsedNotes = parseRequestNotes(selectedRequest.notes);
+        return (
+          <div className={styles.modalOverlay} onClick={() => setSelectedRequest(null)}>
+            <div className={styles.modalCard} onClick={(e) => e.stopPropagation()}>
+              <div className={styles.modalHeader}>
+                <div>
+                  <h2>Emergency Request Details</h2>
+                  <div className={styles.reqIdRow}>
+                    <span className={styles.reqIdBadge}>{formatRequestId(selectedRequest.id)}</span>
+                    <span className={styles.reqIdType}>
+                      {parsedNotes.isDirectReq || selectedRequest.notes?.includes("DIRECT_REQ_FOR:") ? "Direct Request" : "Public Emergency"}
                     </span>
-                  </p>
+                  </div>
                 </div>
-                <div className={styles.modalItem}>
-                  <label>Location</label>
-                  <p>{selectedRequest.district}, {selectedRequest.area || "N/A"}</p>
-                </div>
-                <div className={styles.modalItem}>
-                  <label>Contact Number</label>
-                  <p><a href={`tel:${selectedRequest.contact_number}`} className={styles.phoneLink}>{selectedRequest.contact_number}</a></p>
-                </div>
-                <div className={styles.modalItem}>
-                  <label>Status</label>
-                  <p><strong>{selectedRequest.status}</strong></p>
-                </div>
-                <div className={styles.modalItem}>
-                  <label>Required Date/Time</label>
-                  <p>{selectedRequest.needed_date_time ? new Date(selectedRequest.needed_date_time).toLocaleString() : "Immediate"}</p>
-                </div>
+                <button className={styles.closeBtn} onClick={() => setSelectedRequest(null)}>✕</button>
               </div>
 
-              {selectedRequest.notes && cleanNotes(selectedRequest.notes) && (
-                <div className={styles.modalNotes}>
-                  <label>Notes / Patient Medical Condition:</label>
-                  <p>{cleanNotes(selectedRequest.notes)}</p>
+              <div className={styles.modalBody}>
+                <div className={styles.modalGrid}>
+                  <div className={styles.modalItem}>
+                    <label>Patient Name</label>
+                    <p>{selectedRequest.patient_name}</p>
+                  </div>
+                  <div className={styles.modalItem}>
+                    <label>Blood Group Needed</label>
+                    <p><span className={styles.bloodPill}>{selectedRequest.blood_group}</span> ({selectedRequest.units_required || 1} Bag)</p>
+                  </div>
+                  <div className={styles.modalItem}>
+                    <label>Hospital</label>
+                    <p>{selectedRequest.hospital_name}</p>
+                  </div>
+                  {(parsedNotes.details.ward || parsedNotes.details.bed) && (
+                    <div className={styles.modalItem}>
+                      <label>Ward / Bed / Cabin</label>
+                      <p>
+                        {parsedNotes.details.ward ? `Ward: ${parsedNotes.details.ward}` : ""}
+                        {parsedNotes.details.ward && parsedNotes.details.bed ? " • " : ""}
+                        {parsedNotes.details.bed ? `Bed/Cabin: ${parsedNotes.details.bed}` : ""}
+                      </p>
+                    </div>
+                  )}
+                  <div className={styles.modalItem}>
+                    <label>Urgency Level</label>
+                    <p>
+                      <span className={`${styles.badge} ${selectedRequest.urgency_level === "Critical" ? styles.badgeCritical : selectedRequest.urgency_level === "Urgent" ? styles.badgeUrgent : styles.badgeStandard}`}>
+                        {selectedRequest.urgency_level}
+                      </span>
+                    </p>
+                  </div>
+                  <div className={styles.modalItem}>
+                    <label>Location</label>
+                    <p>{selectedRequest.district}, {selectedRequest.area || "N/A"}</p>
+                  </div>
+                  <div className={styles.modalItem}>
+                    <label>Contact Number</label>
+                    <p><a href={`tel:${selectedRequest.contact_number}`} className={styles.phoneLink}>{selectedRequest.contact_number}</a></p>
+                  </div>
+                  {(parsedNotes.details.contactPerson || parsedNotes.details.relationship) && (
+                    <div className={styles.modalItem}>
+                      <label>Contact Person / Attendant</label>
+                      <p>
+                        {parsedNotes.details.contactPerson || "Attendant"}
+                        {parsedNotes.details.relationship && (
+                          <span className={styles.relationBadge}>{parsedNotes.details.relationship}</span>
+                        )}
+                      </p>
+                    </div>
+                  )}
+                  <div className={styles.modalItem}>
+                    <label>Status</label>
+                    <p><strong>{selectedRequest.status}</strong></p>
+                  </div>
+                  <div className={styles.modalItem}>
+                    <label>Required Date/Time</label>
+                    <div>
+                      <p>{selectedRequest.needed_date_time ? new Date(selectedRequest.needed_date_time).toLocaleString() : "Immediate"}</p>
+                      {parsedNotes.details.schedule && (
+                        <div className={styles.scheduleBadge}>
+                          🕒 {formatDynamicSchedule(selectedRequest.needed_date_time, parsedNotes.details.schedule)}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  {parsedNotes.others && Object.keys(parsedNotes.others).length > 0 && Object.entries(parsedNotes.others).map(([key, val]) => (
+                    <div key={key} className={styles.modalItem}>
+                      <label>{key}</label>
+                      <p>{val}</p>
+                    </div>
+                  ))}
                 </div>
-              )}
-            </div>
 
-            <div className={styles.modalFooter}>
-              <button className={styles.btnSecondary} onClick={() => setSelectedRequest(null)}>Close</button>
-              <a href={`tel:${selectedRequest.contact_number}`} className={styles.btnPrimary}>
-                Call Attendant ({selectedRequest.contact_number})
-              </a>
+                {parsedNotes.conditionText && (
+                  <div className={styles.modalNotes}>
+                    <label>Notes / Patient Medical Condition:</label>
+                    <p>{parsedNotes.conditionText}</p>
+                  </div>
+                )}
+              </div>
+
+              <div className={styles.modalFooter}>
+                <button className={styles.btnSecondary} onClick={() => setSelectedRequest(null)}>Close</button>
+                <a href={`tel:${selectedRequest.contact_number}`} className={styles.btnPrimary}>
+                  Call {parsedNotes.details.contactPerson || "Attendant"} ({selectedRequest.contact_number})
+                </a>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
 }
